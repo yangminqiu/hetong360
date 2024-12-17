@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 智能合同审查工具</title>
+    <title>合同360智能合同审查工具</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-    <script src="https://unpkg.com/docx@8.2.3/build/index.min.js" 
-            onerror="console.warn('Word导出功能不可用，将使用文本格式导出');"
-            async></script>
+    <script src="https://unpkg.com/docx@8.2.3/build/index.min.js"></script>
     <script>
-        // 检查 docx 库是否加载成功
-        window.addEventListener('load', function() {
+        // 初始化 docx 库
+        document.addEventListener('DOMContentLoaded', function() {
             if (typeof docx !== 'undefined') {
-                window.docx = docx;
+                window.docxLib = docx;
+                console.log('Word导出组件加载成功');
+            } else {
+                console.error('Word导出组件加载失败');
             }
         });
     </script>
@@ -27,7 +28,7 @@
                     <path d="M20 0C8.954 0 0 8.954 0 20s8.954 20 20 20 20-8.954 20-20S31.046 0 20 0zm0 36c-8.837 0-16-7.163-16-16S11.163 4 20 4s16 7.163 16 16-7.163 16-16 16z" fill="#007AFF"/>
                     <path d="M20 8c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12S26.627 8 20 8zm-2 18l-6-6 2.125-2.125L18 21.875l8.875-8.875L29 15l-11 11z" fill="#007AFF"/>
                 </svg>
-                <h1>AI 合同审查工具</h1>
+                <h1>合同360---智能合同审查工具</h1>
             </div>
         </header>
 

@@ -64,8 +64,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 '中立'
                             }的角度分析以下合同。${
                                 role !== 'neutral' ? 
-                                '你的职责是最大程度维护委托方利益，提供的建议必须对委托方有利。' : 
-                                '你需要公正客观地分析合同。'
+                                '你��职责是最大程度维护委托方利益，提供的建议必须对委托方有利。' : 
+                                '你需要站在委托方的角度分析合同。'
                             }\n\n分析要求：${
                                 role === 'neutral' ? 
                                 '公正地详细分析以下内容：\n1. 合同中双方的权利义务关系\n2. 合同条款的完整性和合理性\n3. 潜在的法律风险\n4. 需要补充或完善的条款\n5. 对条款的具体修改建议' : 
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             '   • 分析：[客观分析该条款对双方的影响]\n' +
                             '   • 建议：[平衡的修改或补充建议，给出明确的条款表述]\n'}
                             
-                            三、需要补充的条款
+                            三、要补充的条款
                             ${role !== 'neutral' ? 
                             '根据合同内容，建议补充以下条款（每个补充条款都应该对我方有利\n' +
                             '1. [补充条款名称]\n' +
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const data = await response.json();
-            // 储修改后的合同���容
+            // 储修改后的合同容
             window.modifiedContract = data.choices[0].message.content;
             return data.choices[0].message.content;
         } catch (error) {
@@ -181,64 +181,71 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('未找到修改后的合同内容');
             }
 
-            // 检查 docx 库是否正确加载
-            if (!window.docx) {
-                // 如果 docx 库未加载，使用纯文本方式导出
-                const blob = new Blob([contractSection.trim()], { type: 'text/plain;charset=utf-8' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = '修改后的合同.txt';
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                return;
-            }
+            // 更新按钮状态
+            const downloadBtn = document.querySelector('.download-btn');
+            downloadBtn.disabled = true;
+            downloadBtn.textContent = '正在准备导出...';
 
-            // 创建新的 Word 文档
-            const { Document, Paragraph, TextRun, AlignmentType, Packer } = window.docx;
-            const doc = new Document({
-                sections: [{
-                    properties: {},
-                    children: [
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "修改后的合同",
-                                    bold: true,
-                                    size: 36,
-                                }),
-                            ],
-                            alignment: AlignmentType.CENTER,
-                            spacing: {
-                                after: 400,
-                            },
-                        }),
-                        ...contractSection
-                            .trim()
-                            .split('\n')
-                            .map(line => {
-                                // 处理标题
-                                if (line.startsWith('#')) {
-                                    const level = line.match(/^#+/)[0].length;
-                                    const text = line.replace(/^#+\s*/, '');
-                                    return new Paragraph({
-                                        children: [
-                                            new TextRun({
-                                                text,
-                                                bold: true,
-                                                size: 28 - (level * 2),
-                                            }),
-                                        ],
-                                        spacing: {
-                                            before: 300,
-                                            after: 200,
-                                        },
-                                    });
-                                }
-                                // 处理普通段落
-                                return new Paragraph({
+            // 获取原始文件格式
+            const originalFormat = window.uploadedFileFormat;
+            const content = contractSection.trim();
+
+            // 根据原始文件格式选择导出方式
+            if (originalFormat === 'docx' && window.docxLib) {
+                // Word 格式导出
+                const { Document, Paragraph, TextRun, AlignmentType, Packer } = window.docxLib;
+                if (!Document || !Paragraph || !TextRun || !AlignmentType || !Packer) {
+                    throw new Error('Word导出组件初始化失败，将以文本格式导出');
+                }
+                
+                // 解析合同内容
+                const lines = content.split('\n');
+                const documentChildren = [];
+                
+                // 添加标题
+                documentChildren.push(
+                    new Paragraph({
+                        children: [
+                            new TextRun({
+                                text: "修改后的合同",
+                                bold: true,
+                                size: 36,
+                            }),
+                        ],
+                        alignment: AlignmentType.CENTER,
+                        spacing: {
+                            after: 400,
+                        },
+                    })
+                );
+                
+                // 处理每一行内容
+                lines.forEach(line => {
+                    if (line.trim()) {  // 跳过空行
+                        if (line.startsWith('#')) {
+                            // 处理标题
+                            const level = line.match(/^#+/)[0].length;
+                            const text = line.replace(/^#+\s*/, '');
+                            documentChildren.push(
+                                new Paragraph({
+                                    children: [
+                                        new TextRun({
+                                            text,
+                                            bold: true,
+                                            size: 32 - (level * 4),
+                                        }),
+                                    ],
+                                    spacing: {
+                                        before: 400,
+                                        after: 200,
+                                    },
+                                    heading: level,
+                                })
+                            );
+                        } else {
+                            // 处理普通段落
+                            documentChildren.push(
+                                new Paragraph({
                                     children: [
                                         new TextRun({
                                             text: line,
@@ -250,50 +257,58 @@ document.addEventListener('DOMContentLoaded', function() {
                                         after: 120,
                                         line: 360,
                                     },
-                                });
-                            }),
-                    ],
-                }],
-            });
+                                })
+                            );
+                        }
+                    }
+                });
 
-            // 生成并下载文档
-            Packer.toBlob(doc).then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = '修改后的合同.docx';
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            });
-        } catch (error) {
-            console.error('导出错误:', error);
-            // 如果出错，回退到纯文本导出
-            try {
-                const contractSection = window.modifiedContract.split('五、修改后的完整合同')[1];
-                if (contractSection) {
-                    const blob = new Blob([contractSection.trim()], { type: 'text/plain;charset=utf-8' });
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: documentChildren,
+                    }],
+                });
+
+                // 生成并下载文档
+                Packer.toBlob(doc).then(blob => {
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = '修改后的合同.txt';
+                    a.download = '修改后的合同.docx';
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
                     document.body.removeChild(a);
-                } else {
-                    alert('导出失败：无法获取修改后的合同内容');
-                }
-            } catch (e) {
-                alert('导出失败：' + error.message);
+                });
+            } else {
+                // 文本格式导出
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '修改后的合同.txt';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
             }
+
+            downloadBtn.textContent = '导出修改后的合同';
+            downloadBtn.disabled = false;
+        } catch (error) {
+            console.error('导出错误:', error);
+            alert('导出失败：' + error.message);
+            
+            const downloadBtn = document.querySelector('.download-btn');
+            downloadBtn.textContent = '导出修改后的合同';
+            downloadBtn.disabled = false;
         }
     }
 
     // 更新文件编码检测函数
     function detectEncoding(buffer) {
-        // 尝试不同的编码方式
+        // 尝试同的编码方式
         const encodings = ['UTF-8', 'GB18030', 'GBK', 'GB2312', 'UTF-16LE', 'UTF-16BE'];
         
         for (let encoding of encodings) {
@@ -317,9 +332,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // 更新文件处理函数
     const handleFile = function(file) {
         if (file) {
+            // 记录文件格式
+            window.uploadedFileFormat = file.name.toLowerCase().split('.').pop();
             const previewContent = document.querySelector('.preview-content');
             
-            // 显示预览���域
+            // 显示预览区域
             reviewSection.style.display = 'grid';
             
             // 显示加载提示
@@ -377,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         const suggestionsContent = document.querySelector('.suggestions-content');
                         suggestionsContent.innerHTML = '<div class="hint">请选择您的立场开始分析</div>';
                     } catch (error) {
-                        console.error('文件编码处理错误:', error);
+                        console.error('文件编码理错误:', error);
                         previewContent.innerHTML = '<div class="error">无法正确读取文件，请确保文件使用正确的中文编码</div>';
                     }
                 };
@@ -397,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // 检查是否已上传文件
             if (!window.contractContent) {
                 const suggestionsContent = document.querySelector('.suggestions-content');
-                suggestionsContent.innerHTML = '<div class="error">请先上传合同文件</div>';
+                suggestionsContent.innerHTML = '<div class="error">请��上传合同文件</div>';
                 return;
             }
 
@@ -432,4 +449,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (downloadBtn) {
         downloadBtn.addEventListener('click', exportModifiedContract);
     }
+
+    // 页面加载完成��预加载 docx 库
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            await window.loadDocxLibrary();
+            console.log('Word导出组件加载成功');
+        } catch (error) {
+            console.warn('Word导出组件预加载失败，将在首次导出时重试');
+        }
+    });
 }); 
