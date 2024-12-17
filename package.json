@@ -1,0 +1,21 @@
+{
+  "name": "hetong360",
+  "version": "1.0.0",
+  "description": "- 基础功能完成\r   - 支持 .docx 和 .txt 格式的合同文件上传\r   - 支持文件拖放和点击上传\r   - 自动识别中文编码，解决乱码问题\r   - 支持甲方、乙方、中立方三种立场的合同分析\r   - 支持导出修改后的合同（Word/文本格式）",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "md5": "^2.3.0",
+    "nodemon": "^3.0.3"
+  }
+}

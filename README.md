@@ -18,11 +18,34 @@
   - 完善的错误处理机制
 
 ## 项目结构
+```
+hetong360/
+├── public/              # 静态文件目录
+│   ├── js/             # JavaScript 文件
+│   │   └── script.js
+│   ├── css/            # CSS 文件
+│   │   └── styles.css
+│   └── index.html      # 主页面
+├── server.js           # 服务器代码
+├── package.json        # 项目配置
+└── README.md           # 项目说明
+```
 
-- HTML5
-- CSS3
-- JavaScript
-- PDF.js (用于PDF文件处理) 
+## 开发说明
+1. 安装依赖：
+   ```bash
+   npm install
+   ```
+
+2. 启动服务器：
+   ```bash
+   npm start
+   ```
+
+3. 开发模式（自动重启）：
+   ```bash
+   npm run dev
+   ```
 
 ## 功能说明
 

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合同360智能合同审查工具</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://unpkg.com/docx@8.2.3/build/index.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
+    <script>
+        // 初始化 docx 库
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof docx !== 'undefined') {
+                window.docxLib = docx;
+                console.log('Word导出组件加载成功');
+            } else {
+                console.error('Word导出组件加载失败');
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部区域 -->
+        <header>
+            <div class="logo">
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                    <path d="M20 0C8.954 0 0 8.954 0 20s8.954 20 20 20 20-8.954 20-20S31.046 0 20 0zm0 36c-8.837 0-16-7.163-16-16S11.163 4 20 4s16 7.163 16 16-7.163 16-16 16z" fill="#007AFF"/>
+                    <path d="M20 8c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12S26.627 8 20 8zm-2 18l-6-6 2.125-2.125L18 21.875l8.875-8.875L29 15l-11 11z" fill="#007AFF"/>
+                </svg>
+                <h1>合同360---智能合同审查工具</h1>
+            </div>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main>
+            <div class="upload-section">
+                <div class="upload-area" id="dropZone" style="cursor: pointer;">
+                    <svg width="48" height="48" viewBox="0 0 48 48">
+                        <path d="M24 4l12 12h-8v16h-8V16h-8L24 4z" fill="#007AFF"/>
+                        <path d="M8 36v4h32v-4H8z" fill="#007AFF"/>
+                    </svg>
+                    <p>拖放合同文件到这里，或点击上传</p>
+                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt" hidden>
+                </div>
+            </div>
+
+            <div class="role-selection">
+                <h2>请选择您的立场</h2>
+                <div class="usage-info">
+                    <p>免费使用次数：<span id="freeCount">1</span></p>
+                    <p class="price-info">后续使用费用：10元/次</p>
+                </div>
+                <div class="role-options">
+                    <button class="role-btn" data-role="party_a">甲方</button>
+                    <button class="role-btn" data-role="party_b">乙方</button>
+                    <button class="role-btn" data-role="neutral">中立方</button>
+                </div>
+            </div>
+
+            <div class="review-section" style="display: none;">
+                <div class="contract-preview">
+                    <div class="preview-header">
+                        <h3>合同预览</h3>
+                        <button class="download-btn" disabled>导出修改后的合同</button>
+                    </div>
+                    <div class="preview-content"></div>
+                </div>
+                <div id="paymentPrompt" class="payment-prompt" style="display: none;">
+                    <div class="payment-content">
+                        <h3>继续使用需要支付</h3>
+                        <p>您的免费使用次数已用完</p>
+                        <p class="price">￥10.00</p>
+                        <div class="payment-buttons">
+                            <button class="cancel-btn">取消</button>
+                            <button class="confirm-btn">立即支付</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="ai-suggestions">
+                    <div class="suggestions-header">
+                        <h3>AI 建议</h3>
+                    </div>
+                    <div class="suggestions-content"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="/js/script.js"></script>
+</body>
+</html> 
