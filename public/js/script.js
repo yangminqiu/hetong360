@@ -49,16 +49,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // AI 分析合同
     async function analyzeContract(content, role) {
         try {
-            // 检查是否已���传合同
+            // 检查是否已上传合同
             if (!window.contractContent) {
                 return '请先上传合同文件再进行分析。';
             }
 
-            const response = await fetch(DEEPSEEK_API_URL, {
+            // 获取配置
+            const config = await getConfig();
+            if (!config || !config.DEEPSEEK) {
+                throw new Error('无法获取配置信息');
+            }
+
+            const response = await fetch(config.DEEPSEEK.API_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+                    'Authorization': `Bearer ${config.DEEPSEEK.API_KEY}`
                 },
                 body: JSON.stringify({
                     model: "deepseek-chat",
@@ -123,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${role !== 'neutral' ? 
                             '根据合同内容，建议补充以下条款（每个补充条款都应该对我方有利\n' +
                             '1. [补充条款名称]\n' +
-                            '   • 必要��：[说明为什么需要补充此条款]\n' +
+                            '   • 必要性：[说明为什么需要补充此条款]\n' +
                             '   • 建议条款：[给出具体的条款表述]\n' : 
                             '根据合同内容，建议补充以下条款：\n' +
                             '1. [补充条款名称]\n' +
@@ -154,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                1.2 ...
                                ## 第二条 ...
                             
-                            注意：修改后的合同必须是一个完整的、可直接使用的法律文本。`
+                            注意：修改后的合同必须是一个完整的、可直接���用的法律文本。`
                         },
                         {
                             "role": "user",
@@ -166,7 +172,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const data = await response.json();
-            // 储修改后的合同容
             window.modifiedContract = data.choices[0].message.content;
             return data.choices[0].message.content;
         } catch (error) {
@@ -402,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         suggestionsContent.innerHTML = '<div class="hint">请选择您的立场开始分析</div>';
                     } catch (error) {
                         console.error('文件编码理错误:', error);
-                        previewContent.innerHTML = '<div class="error">无法���确读取文件，请确保文件使用正确的中文编码</div>';
+                        previewContent.innerHTML = '<div class="error">无法确读取文件，请确保文件使用正确的中文编码</div>';
                     }
                 };
                 reader.readAsArrayBuffer(file);
@@ -436,12 +441,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // 发起支付
     async function initPayment() {
         try {
+            // 生成订单ID
+            const orderId = 'HT360_' + Date.now();
+            localStorage.setItem('currentOrderId', orderId);
+            
             // 发起支付请求到后端
             const response = await fetch('http://localhost:3001/api/payment/create', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                }
+                },
+                body: JSON.stringify({ orderId })
             });
 
             const result = await response.json();
@@ -454,14 +464,37 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('支付错误:', error);
-            alert('支付发起失败：' + error.message);
+            alert('支付发��失败：' + error.message);
         }
+    }
+
+    // 检查支付状态
+    async function checkPaymentStatus() {
+        const orderId = localStorage.getItem('currentOrderId');
+        if (!orderId) return false;
+        
+        try {
+            const response = await fetch(`http://localhost:3001/api/payment/check/${orderId}`);
+            const result = await response.json();
+            if (result.paid) {
+                localStorage.setItem('paymentCompleted', 'true');
+                return true;
+            }
+        } catch (error) {
+            console.error('检查支付状态失败:', error);
+        }
+        return false;
     }
 
     // 检查使用次数
     function checkUsageLimit() {
+        // 检查是否已支付
+        if (localStorage.getItem('paymentCompleted') === 'true') {
+            return true;
+        }
+        // 检查免费次数
         const usageCount = parseInt(localStorage.getItem('usageCount') || '0');
-        return usageCount < 1; // 返回是否可以免费使用
+        return usageCount < 1;
     }
 
     // 更新使用次数
@@ -552,4 +585,21 @@ document.addEventListener('DOMContentLoaded', function() {
             console.warn('Word导出组件预加载失败，将在首次导出时重试');
         }
     });
+
+    // 页面加载时检查支付状态
+    window.addEventListener('load', async () => {
+        await checkPaymentStatus();
+    });
+
+    // 检查URL参数是否包含支付成功标记
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('paid') === 'true') {
+        // 等待几秒检查支付状态
+        setTimeout(async () => {
+            const paid = await checkPaymentStatus();
+            if (paid) {
+                alert('支付成功！您可以继续使用服务了。');
+            }
+        }, 2000);
+    }
 }); 

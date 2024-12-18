@@ -40,6 +40,9 @@ function generatePayHash(params) {
     return md5(stringA + PAY_CONFIG.APPSECRET);
 }
 
+// 存储支付状态（在实际生产环境中应该使用数据库）
+const paymentStatus = new Map();
+
 // 支付接
 app.post('/api/payment/create', async (req, res) => {
     try {
@@ -53,7 +56,7 @@ app.post('/api/payment/create', async (req, res) => {
             title: '合同360智能审查服务',
             time: Math.floor(Date.now() / 1000),
             notify_url: 'http://localhost:3001/api/payment/notify',
-            return_url: origin,
+            return_url: `${origin}?paid=true`,
             callback_url: origin,
             plugins: 'HeTong360',
             nonce_str: Math.random().toString(36).substr(2),
@@ -83,14 +86,29 @@ app.post('/api/payment/create', async (req, res) => {
 app.post('/api/payment/notify', (req, res) => {
     // 处理支付成功通知
     console.log('支付通知:', req.body);
+    const { trade_order_id, status } = req.body;
+    
+    if (status === 'success') {
+        paymentStatus.set(trade_order_id, true);
+    }
+    
     res.json({ errcode: 0, errmsg: 'success' });
+});
+
+// 检查支付状态接口
+app.get('/api/payment/check/:orderId', (req, res) => {
+    const { orderId } = req.params;
+    res.json({
+        paid: paymentStatus.has(orderId)
+    });
 });
 
 // 配置接口 - 只返回前端需要的配置
 app.get('/api/config', (req, res) => {
     res.json({
         DEEPSEEK: {
-            API_URL: config.DEEPSEEK.API_URL
+            API_URL: config.DEEPSEEK.API_URL,
+            API_KEY: config.DEEPSEEK.API_KEY
         },
         PAYMENT: {
             PRICE: config.PAYMENT.PRICE
