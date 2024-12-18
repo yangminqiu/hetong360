@@ -1,14 +1,13 @@
-// 添加 DeepSeek API 配置
-const DEEPSEEK_API_KEY = 'sk-aacab0ed2f2e4cedbe034cccfebd97a9';
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions';
-
-// 添加支付配置
-const PAY_CONFIG = {
-    APPID: '201906169437',
-    APPSECRET: '2ee7a55b47003acbc1c89e5497f7de45',
-    PAY_URL: 'https://api.xunhupay.com/payment/do.html',
-    PRICE: 10, // 每次使用价格（元）
-};
+// 从服务器获取配置
+async function getConfig() {
+    try {
+        const response = await fetch('/api/config');
+        return await response.json();
+    } catch (error) {
+        console.error('获取配置失败:', error);
+        return null;
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     const dropZone = document.getElementById('dropZone');
@@ -50,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // AI 分析合同
     async function analyzeContract(content, role) {
         try {
-            // 检查是否已上传合同
+            // 检查是否已���传合同
             if (!window.contractContent) {
                 return '请先上传合同文件再进行分析。';
             }
@@ -124,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${role !== 'neutral' ? 
                             '根据合同内容，建议补充以下条款（每个补充条款都应该对我方有利\n' +
                             '1. [补充条款名称]\n' +
-                            '   • 必要性：[说明为什么需要补充此条款]\n' +
+                            '   • 必要��：[说明为什么需要补充此条款]\n' +
                             '   • 建议条款：[给出具体的条款表述]\n' : 
                             '根据合同内容，建议补充以下条款：\n' +
                             '1. [补充条款名称]\n' +
@@ -192,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // 更新按钮状态
             const downloadBtn = document.querySelector('.download-btn');
             downloadBtn.disabled = true;
-            downloadBtn.textContent = '正在准��导出...';
+            downloadBtn.textContent = '正在准备导出...';
 
             // 获取原始文件格式
             const originalFormat = window.uploadedFileFormat;
@@ -403,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         suggestionsContent.innerHTML = '<div class="hint">请选择您的立场开始分析</div>';
                     } catch (error) {
                         console.error('文件编码理错误:', error);
-                        previewContent.innerHTML = '<div class="error">无法正确读取文件，请确保文件使用正确的中文编码</div>';
+                        previewContent.innerHTML = '<div class="error">无法���确读取文件，请确保文件使用正确的中文编码</div>';
                     }
                 };
                 reader.readAsArrayBuffer(file);

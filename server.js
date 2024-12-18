@@ -3,6 +3,7 @@ const cors = require('cors');
 const axios = require('axios');
 const md5 = require('md5');
 const path = require('path');
+const config = require('./config');
 
 const app = express();
 app.use(cors({
@@ -21,11 +22,7 @@ app.get('/', (req, res) => {
 });
 
 // 支付配置
-const PAY_CONFIG = {
-    APPID: '201906169437',
-    APPSECRET: '2ee7a55b47003acbc1c89e5497f7de45',
-    PAY_URL: 'https://api.xunhupay.com/payment/do.html'
-};
+const PAY_CONFIG = config.PAYMENT;
 
 // 生成签名
 function generatePayHash(params) {
@@ -43,7 +40,7 @@ function generatePayHash(params) {
     return md5(stringA + PAY_CONFIG.APPSECRET);
 }
 
-// 支付接�����
+// 支付接
 app.post('/api/payment/create', async (req, res) => {
     try {
         const orderId = 'HT360_' + Date.now();
@@ -87,6 +84,18 @@ app.post('/api/payment/notify', (req, res) => {
     // 处理支付成功通知
     console.log('支付通知:', req.body);
     res.json({ errcode: 0, errmsg: 'success' });
+});
+
+// 配置接口 - 只返回前端需要的配置
+app.get('/api/config', (req, res) => {
+    res.json({
+        DEEPSEEK: {
+            API_URL: config.DEEPSEEK.API_URL
+        },
+        PAYMENT: {
+            PRICE: config.PAYMENT.PRICE
+        }
+    });
 });
 
 // 404处理 - 放在所有路由之后
