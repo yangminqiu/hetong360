@@ -3,7 +3,7 @@ const cors = require('cors');
 const axios = require('axios');
 const md5 = require('md5');
 const path = require('path');
-const config = require('./config');
+require('dotenv').config();
 
 const app = express();
 app.use(cors({
@@ -22,7 +22,11 @@ app.get('/', (req, res) => {
 });
 
 // 支付配置
-const PAY_CONFIG = config.PAYMENT;
+const PAY_CONFIG = {
+    APPID: process.env.PAYMENT_APPID,
+    APPSECRET: process.env.PAYMENT_APPSECRET,
+    PAY_URL: process.env.PAYMENT_URL
+};
 
 // 生成签名
 function generatePayHash(params) {
@@ -107,11 +111,11 @@ app.get('/api/payment/check/:orderId', (req, res) => {
 app.get('/api/config', (req, res) => {
     res.json({
         DEEPSEEK: {
-            API_URL: config.DEEPSEEK.API_URL,
-            API_KEY: config.DEEPSEEK.API_KEY
+            API_URL: process.env.DEEPSEEK_API_URL,
+            API_KEY: process.env.DEEPSEEK_API_KEY
         },
         PAYMENT: {
-            PRICE: config.PAYMENT.PRICE
+            PRICE: process.env.PAYMENT_PRICE
         }
     });
 });
